@@ -146,7 +146,7 @@ const COMMANDS = {
     println(`Available commands:
   <span class="white">ls</span> [-la]            list CV sections (files)
   <span class="white">cat</span> &lt;file&gt;            print a section, e.g. cat about.txt
-  <span class="white">download</span> [file]      download resume.pdf
+  <span class="white">download</span>              download resume.pdf
   <span class="white">theme</span> [dark|light]   toggle colour theme
   <span class="white">whoami</span>                who am I
   <span class="white">about</span>                 professional summary  (alias of cat about.txt)
