@@ -244,21 +244,34 @@ function playAnim(cls, duration, onDone) {
   }, duration);
 }
 
+function unminimize() {
+  terminalEl.classList.remove("minimized");
+  playAnim("anim-restore", 220, () => input.focus());
+}
+function minimize() {
+  playAnim("anim-minimize", 220, () => terminalEl.classList.add("minimized"));
+}
+function maximize() {
+  terminalEl.classList.add("maximized");
+  maxBtn.innerHTML = "&#10064;";
+  maxBtn.setAttribute("aria-label", "Restore");
+  playAnim("anim-pop", 200, scrollBottom);
+}
+function unmaximize() {
+  terminalEl.classList.remove("maximized");
+  maxBtn.innerHTML = "&#9633;";
+  maxBtn.setAttribute("aria-label", "Maximize");
+  playAnim("anim-pop", 200, scrollBottom);
+}
+
 minBtn.addEventListener("click", () => {
-  if (terminalEl.classList.contains("minimized")) {
-    // restore from minimized
-    terminalEl.classList.remove("minimized");
-    playAnim("anim-restore", 220, () => input.focus());
-  } else {
-    playAnim("anim-minimize", 220, () => terminalEl.classList.add("minimized"));
-  }
+  if (terminalEl.classList.contains("minimized")) unminimize();
+  else minimize();
 });
 
 maxBtn.addEventListener("click", () => {
-  const nowMax = terminalEl.classList.toggle("maximized");
-  maxBtn.innerHTML = nowMax ? "&#10064;" : "&#9633;";
-  maxBtn.setAttribute("aria-label", nowMax ? "Restore" : "Maximize");
-  playAnim("anim-pop", 200, scrollBottom);
+  if (terminalEl.classList.contains("maximized")) unmaximize();
+  else maximize();
 });
 
 closeBtn.addEventListener("click", () => {
@@ -271,6 +284,14 @@ reopenBtn.addEventListener("click", () => {
   terminalEl.classList.remove("hidden");
   reopenHint.classList.remove("visible");
   playAnim("anim-open", 220, () => input.focus());
+});
+
+/* ---------- Double-click/tap the title bar: minimize <-> normal <-> maximized ---------- */
+titlebar.addEventListener("dblclick", e => {
+  if (e.target.closest("button")) return;
+  if (terminalEl.classList.contains("minimized")) unminimize();
+  else if (terminalEl.classList.contains("maximized")) unmaximize();
+  else maximize();
 });
 
 /* ---------- Dragging (mouse + touch via Pointer Events) ---------- */
