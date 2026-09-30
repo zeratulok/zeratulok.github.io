@@ -52,10 +52,12 @@ body {
   border: 1px solid #444;
   color: #ccc;
   border-radius: 4px;
-  width: 26px;
+  padding: 3px 10px;
   height: 22px;
-  font-size: 13px;
+  font-size: 11px;
+  font-family: inherit;
   line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
 }
 .theme-toggle:hover { background: #2a2a2a; }

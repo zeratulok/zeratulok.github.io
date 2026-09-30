@@ -219,7 +219,7 @@ function run(raw) {
 
 function applyTheme(theme) {
   document.body.classList.toggle("light", theme === "light");
-  themeToggleBtn.innerHTML = theme === "light" ? "&#9789;" : "&#9788;";
+  themeToggleBtn.textContent = theme === "light" ? "switch to dark mode" : "switch to light mode";
   localStorage.setItem("cv-theme", theme);
 }
 function toggleTheme() {
