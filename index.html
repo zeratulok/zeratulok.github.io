@@ -10,9 +10,13 @@
 <body>
   <div class="terminal" id="terminal">
     <div class="titlebar">
-      <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
       <span class="titletext">spinter@github</span>
       <button id="themeToggle" class="theme-toggle" title="Toggle light/dark" aria-label="Toggle theme">switch to light mode</button>
+      <div class="win-controls">
+        <button class="win-btn min" aria-label="Minimize">&#8212;</button>
+        <button class="win-btn max" aria-label="Maximize">&#9633;</button>
+        <button class="win-btn close" aria-label="Close">&#10005;</button>
+      </div>
     </div>
     <div class="screen" id="screen" tabindex="0">
       <pre id="output"></pre>

@@ -27,25 +27,41 @@ body {
 }
 
 .titlebar {
-  background: #1e1e1e;
-  padding: 8px 12px;
+  background: #1a1a1a;
+  padding: 0 0 0 12px;
   display: flex;
   align-items: center;
   gap: 8px;
-  border-bottom: 1px solid #000;
+  border-bottom: 1px solid #333;
+  height: 32px;
 }
-
-.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-.dot.red { background: #ff5f56; }
-.dot.yellow { background: #ffbd2e; }
-.dot.green { background: #27c93f; }
 
 .titletext {
-  margin-left: 12px;
-  color: #999;
-  font-size: 13px;
+  color: #ccc;
+  font-size: 12.5px;
   flex: 1;
 }
+
+.win-controls {
+  display: flex;
+  height: 100%;
+  margin-left: auto;
+}
+
+.win-btn {
+  background: transparent;
+  border: none;
+  color: #ccc;
+  width: 46px;
+  height: 100%;
+  font-size: 11px;
+  font-family: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+.win-btn.min { font-size: 14px; }
+.win-btn:hover { background: #333; }
+.win-btn.close:hover { background: #e81123; color: #fff; }
 
 .theme-toggle {
   background: transparent;
@@ -134,12 +150,15 @@ body.light .terminal {
 }
 
 body.light .titlebar {
-  background: #f0f0f0;
+  background: #f3f3f3;
   border-bottom: 1px solid #ccc;
 }
-body.light .titletext { color: #555; }
+body.light .titletext { color: #444; }
 body.light .theme-toggle { border-color: #bbb; color: #333; }
 body.light .theme-toggle:hover { background: #ddd; }
+body.light .win-btn { color: #333; }
+body.light .win-btn:hover { background: #e2e2e2; }
+body.light .win-btn.close:hover { background: #e81123; color: #fff; }
 
 body.light .screen {
   background: #fdfdfd;
