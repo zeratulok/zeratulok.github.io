@@ -123,6 +123,7 @@ const maxBtn = document.getElementById("maxBtn");
 const closeBtn = document.getElementById("closeBtn");
 const reopenHint = document.getElementById("reopenHint");
 const reopenBtn = document.getElementById("reopenBtn");
+const snapPreviewEl = document.getElementById("snapPreview");
 const cursorEl = document.getElementById("cursor");
 
 function println(html = "") {
@@ -316,33 +317,76 @@ titlebar.addEventListener("dblclick", e => {
 
 /* ---------- Dragging (mouse + touch via Pointer Events) ---------- */
 const EDGE_SNAP_THRESHOLD = 30; // px from a viewport edge that triggers snapping on drop
+const UNSNAP_DRAG_THRESHOLD = 6; // px the pointer must move in the "release" direction before un-snapping
 let dragging = false;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
+let pendingSpecialRestore = null; // null | "maximized" | "snapped-left" | "snapped-right"
+let dragStartX = 0;
+let dragStartY = 0;
+
+function computeSnapZone(x, y) {
+  if (y <= EDGE_SNAP_THRESHOLD) return "top";
+  if (x <= EDGE_SNAP_THRESHOLD) return "left";
+  if (x >= window.innerWidth - EDGE_SNAP_THRESHOLD) return "right";
+  return null;
+}
+
+function updateSnapPreview(zone) {
+  if (!zone) {
+    snapPreviewEl.classList.remove("visible");
+    return;
+  }
+  if (zone === "top") {
+    snapPreviewEl.style.top = "0";
+    snapPreviewEl.style.left = "0";
+    snapPreviewEl.style.width = "100vw";
+    snapPreviewEl.style.height = "100vh";
+  } else if (zone === "left") {
+    snapPreviewEl.style.top = "0";
+    snapPreviewEl.style.left = "0";
+    snapPreviewEl.style.width = "50vw";
+    snapPreviewEl.style.height = "100vh";
+  } else if (zone === "right") {
+    snapPreviewEl.style.top = "0";
+    snapPreviewEl.style.left = "50vw";
+    snapPreviewEl.style.width = "50vw";
+    snapPreviewEl.style.height = "100vh";
+  }
+  snapPreviewEl.classList.add("visible");
+}
+
+// Detach a maximized/snapped window into a normal floating window, keeping the
+// same relative point on the title bar under the cursor (like Windows "picking up" a window).
+function beginFloatingDragFrom(e, clickFractionX) {
+  terminalEl.classList.remove("maximized", "snapped-left", "snapped-right");
+  maxBtn.innerHTML = "&#9633;";
+  maxBtn.setAttribute("aria-label", "Maximize");
+
+  const rect = terminalEl.getBoundingClientRect();
+  terminalEl.style.position = "fixed";
+  terminalEl.style.margin = "0";
+  const newLeft = e.clientX - rect.width * clickFractionX;
+  const newTop = Math.max(0, e.clientY - 16);
+  terminalEl.style.left = newLeft + "px";
+  terminalEl.style.top = newTop + "px";
+  dragOffsetX = rect.width * clickFractionX;
+  dragOffsetY = 16;
+}
 
 titlebar.addEventListener("pointerdown", e => {
   if (e.target.closest("button")) return;
   if (terminalEl.classList.contains("minimized")) return;
 
   if (isSpecialSized()) {
-    // Dragging away from maximized/snapped: restore to a normal floating window
-    // first, keeping the title bar under the cursor at roughly the same relative spot.
-    const curRect = terminalEl.getBoundingClientRect();
-    const clickFractionX = (e.clientX - curRect.left) / curRect.width;
-    terminalEl.classList.remove("maximized", "snapped-left", "snapped-right");
-    maxBtn.innerHTML = "&#9633;";
-    maxBtn.setAttribute("aria-label", "Maximize");
-
-    const rect = terminalEl.getBoundingClientRect();
-    terminalEl.style.position = "fixed";
-    terminalEl.style.margin = "0";
-    const newLeft = e.clientX - rect.width * clickFractionX;
-    const newTop = Math.max(0, e.clientY - 16);
-    terminalEl.style.left = newLeft + "px";
-    terminalEl.style.top = newTop + "px";
-    dragOffsetX = rect.width * clickFractionX;
-    dragOffsetY = 16;
+    // Don't restore immediately — wait until the user drags in the "release" direction
+    // (down for maximized, right for snapped-left, left for snapped-right).
+    pendingSpecialRestore = terminalEl.classList.contains("maximized") ? "maximized"
+      : terminalEl.classList.contains("snapped-left") ? "snapped-left" : "snapped-right";
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
   } else {
+    pendingSpecialRestore = null;
     const rect = terminalEl.getBoundingClientRect();
     terminalEl.style.position = "fixed";
     terminalEl.style.margin = "0";
@@ -359,6 +403,24 @@ titlebar.addEventListener("pointerdown", e => {
 
 titlebar.addEventListener("pointermove", e => {
   if (!dragging) return;
+
+  if (pendingSpecialRestore) {
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+    let shouldRestore = false;
+    if (pendingSpecialRestore === "maximized" && dy > UNSNAP_DRAG_THRESHOLD) shouldRestore = true;
+    else if (pendingSpecialRestore === "snapped-left" && dx > UNSNAP_DRAG_THRESHOLD) shouldRestore = true;
+    else if (pendingSpecialRestore === "snapped-right" && dx < -UNSNAP_DRAG_THRESHOLD) shouldRestore = true;
+
+    if (!shouldRestore) return; // still maximized/snapped visually until threshold is crossed
+
+    const curRect = terminalEl.getBoundingClientRect();
+    const clickFractionX = (e.clientX - curRect.left) / curRect.width;
+    beginFloatingDragFrom(e, clickFractionX);
+    pendingSpecialRestore = null;
+    // fall through to normal move handling below, using the freshly computed offsets
+  }
+
   const w = terminalEl.offsetWidth;
   const h = terminalEl.offsetHeight;
   let left = e.clientX - dragOffsetX;
@@ -367,22 +429,27 @@ titlebar.addEventListener("pointermove", e => {
   top = Math.max(0, Math.min(top, window.innerHeight - 32));
   terminalEl.style.left = left + "px";
   terminalEl.style.top = top + "px";
+
+  updateSnapPreview(computeSnapZone(e.clientX, e.clientY));
 });
 
 function stopDragging(e) {
   if (!dragging) return;
   dragging = false;
   titlebar.classList.remove("dragging");
+  updateSnapPreview(null);
+
+  if (pendingSpecialRestore) {
+    // Threshold was never crossed — leave the window maximized/snapped as-is.
+    pendingSpecialRestore = null;
+    return;
+  }
+
   if (e && !terminalEl.classList.contains("minimized")) {
-    const x = e.clientX;
-    const y = e.clientY;
-    if (y <= EDGE_SNAP_THRESHOLD) {
-      maximize();
-    } else if (x <= EDGE_SNAP_THRESHOLD) {
-      snapLeft();
-    } else if (x >= window.innerWidth - EDGE_SNAP_THRESHOLD) {
-      snapRight();
-    }
+    const zone = computeSnapZone(e.clientX, e.clientY);
+    if (zone === "top") maximize();
+    else if (zone === "left") snapLeft();
+    else if (zone === "right") snapRight();
   }
 }
 titlebar.addEventListener("pointerup", stopDragging);
