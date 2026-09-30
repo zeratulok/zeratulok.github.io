@@ -26,6 +26,23 @@ body {
   flex-direction: column;
 }
 
+.terminal.hidden { display: none; }
+
+.terminal.maximized {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0;
+  z-index: 999;
+}
+
+.terminal.minimized {
+  height: auto !important;
+}
+.terminal.minimized .screen { display: none; }
+
 .titlebar {
   background: #1a1a1a;
   padding: 0 0 0 12px;
@@ -34,7 +51,11 @@ body {
   gap: 8px;
   border-bottom: 1px solid #333;
   height: 32px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
 }
+.titlebar.dragging { cursor: grabbing; }
 
 .titletext {
   color: #ccc;
@@ -180,3 +201,28 @@ body.light .cursor { color: #16794f; }
 body.light .path { color: #0b6e91; }
 
 body.light .screen::-webkit-scrollbar-thumb { background: #ccc; }
+
+/* ---------- Reopen hint (shown after closing the terminal) ---------- */
+.reopen-hint {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  color: #888;
+  font-family: inherit;
+  font-size: 14px;
+}
+.reopen-hint.visible { display: flex; }
+.reopen-hint button {
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: #d4d4d4;
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.reopen-hint button:hover { background: #2a2a2a; }
+body.light .reopen-hint { color: #666; }
+body.light .reopen-hint button { background: #fff; border-color: #bbb; color: #222; }
+body.light .reopen-hint button:hover { background: #eee; }

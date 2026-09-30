@@ -9,13 +9,13 @@
 </head>
 <body>
   <div class="terminal" id="terminal">
-    <div class="titlebar">
+    <div class="titlebar" id="titlebar">
       <span class="titletext">spinter@github</span>
       <button id="themeToggle" class="theme-toggle" title="Toggle light/dark" aria-label="Toggle theme">switch to light mode</button>
       <div class="win-controls">
-        <button class="win-btn min" aria-label="Minimize">&#8212;</button>
-        <button class="win-btn max" aria-label="Maximize">&#9633;</button>
-        <button class="win-btn close" aria-label="Close">&#10005;</button>
+        <button id="minBtn" class="win-btn min" aria-label="Minimize">&#8212;</button>
+        <button id="maxBtn" class="win-btn max" aria-label="Maximize">&#9633;</button>
+        <button id="closeBtn" class="win-btn close" aria-label="Close">&#10005;</button>
       </div>
     </div>
     <div class="screen" id="screen" tabindex="0">
@@ -26,6 +26,9 @@
         <input id="cmdInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       </div>
     </div>
+  </div>
+  <div class="reopen-hint" id="reopenHint">
+    Terminal closed. <button id="reopenBtn">Reopen</button>
   </div>
   <a id="pdfDownload" href="resume.pdf" download="Sandor_Norbert_Pinter_CV.pdf" style="display:none;"></a>
   <script src="script.js"></script>

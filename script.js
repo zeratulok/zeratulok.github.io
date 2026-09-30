@@ -116,6 +116,13 @@ const input = document.getElementById("cmdInput");
 const screen = document.getElementById("screen");
 const themeToggleBtn = document.getElementById("themeToggle");
 const pdfLink = document.getElementById("pdfDownload");
+const terminalEl = document.getElementById("terminal");
+const titlebar = document.getElementById("titlebar");
+const minBtn = document.getElementById("minBtn");
+const maxBtn = document.getElementById("maxBtn");
+const closeBtn = document.getElementById("closeBtn");
+const reopenHint = document.getElementById("reopenHint");
+const reopenBtn = document.getElementById("reopenBtn");
 
 function println(html = "") {
   output.innerHTML += html + "\n";
@@ -226,6 +233,68 @@ function toggleTheme() {
   applyTheme(document.body.classList.contains("light") ? "dark" : "light");
 }
 themeToggleBtn.addEventListener("click", toggleTheme);
+
+/* ---------- Window controls: minimize / maximize / close ---------- */
+minBtn.addEventListener("click", () => {
+  terminalEl.classList.toggle("minimized");
+  if (!terminalEl.classList.contains("minimized")) input.focus();
+});
+
+maxBtn.addEventListener("click", () => {
+  const nowMax = terminalEl.classList.toggle("maximized");
+  maxBtn.innerHTML = nowMax ? "&#10064;" : "&#9633;";
+  maxBtn.setAttribute("aria-label", nowMax ? "Restore" : "Maximize");
+  scrollBottom();
+});
+
+closeBtn.addEventListener("click", () => {
+  terminalEl.classList.add("hidden");
+  reopenHint.classList.add("visible");
+});
+reopenBtn.addEventListener("click", () => {
+  terminalEl.classList.remove("hidden");
+  reopenHint.classList.remove("visible");
+  input.focus();
+});
+
+/* ---------- Dragging (mouse + touch via Pointer Events) ---------- */
+let dragging = false;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+
+titlebar.addEventListener("pointerdown", e => {
+  if (e.target.closest("button")) return;
+  if (terminalEl.classList.contains("maximized")) return;
+  const rect = terminalEl.getBoundingClientRect();
+  terminalEl.style.position = "fixed";
+  terminalEl.style.margin = "0";
+  terminalEl.style.left = rect.left + "px";
+  terminalEl.style.top = rect.top + "px";
+  dragOffsetX = e.clientX - rect.left;
+  dragOffsetY = e.clientY - rect.top;
+  dragging = true;
+  titlebar.classList.add("dragging");
+  titlebar.setPointerCapture(e.pointerId);
+});
+
+titlebar.addEventListener("pointermove", e => {
+  if (!dragging) return;
+  const w = terminalEl.offsetWidth;
+  const h = terminalEl.offsetHeight;
+  let left = e.clientX - dragOffsetX;
+  let top = e.clientY - dragOffsetY;
+  left = Math.max(-w + 120, Math.min(left, window.innerWidth - 120));
+  top = Math.max(0, Math.min(top, window.innerHeight - 32));
+  terminalEl.style.left = left + "px";
+  terminalEl.style.top = top + "px";
+});
+
+function stopDragging() {
+  dragging = false;
+  titlebar.classList.remove("dragging");
+}
+titlebar.addEventListener("pointerup", stopDragging);
+titlebar.addEventListener("pointercancel", stopDragging);
 
 function longestCommonPrefix(strs) {
   if (!strs.length) return "";
