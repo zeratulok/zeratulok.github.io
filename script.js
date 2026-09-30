@@ -123,6 +123,7 @@ const maxBtn = document.getElementById("maxBtn");
 const closeBtn = document.getElementById("closeBtn");
 const reopenHint = document.getElementById("reopenHint");
 const reopenBtn = document.getElementById("reopenBtn");
+const cursorEl = document.getElementById("cursor");
 
 function println(html = "") {
   output.innerHTML += html + "\n";
@@ -234,27 +235,42 @@ function toggleTheme() {
 }
 themeToggleBtn.addEventListener("click", toggleTheme);
 
-/* ---------- Window controls: minimize / maximize / close ---------- */
+/* ---------- Window controls: minimize / maximize / close (animated) ---------- */
+function playAnim(cls, duration, onDone) {
+  terminalEl.classList.add(cls);
+  setTimeout(() => {
+    terminalEl.classList.remove(cls);
+    if (onDone) onDone();
+  }, duration);
+}
+
 minBtn.addEventListener("click", () => {
-  terminalEl.classList.toggle("minimized");
-  if (!terminalEl.classList.contains("minimized")) input.focus();
+  if (terminalEl.classList.contains("minimized")) {
+    // restore from minimized
+    terminalEl.classList.remove("minimized");
+    playAnim("anim-restore", 220, () => input.focus());
+  } else {
+    playAnim("anim-minimize", 220, () => terminalEl.classList.add("minimized"));
+  }
 });
 
 maxBtn.addEventListener("click", () => {
   const nowMax = terminalEl.classList.toggle("maximized");
   maxBtn.innerHTML = nowMax ? "&#10064;" : "&#9633;";
   maxBtn.setAttribute("aria-label", nowMax ? "Restore" : "Maximize");
-  scrollBottom();
+  playAnim("anim-pop", 200, scrollBottom);
 });
 
 closeBtn.addEventListener("click", () => {
-  terminalEl.classList.add("hidden");
-  reopenHint.classList.add("visible");
+  playAnim("anim-close", 200, () => {
+    terminalEl.classList.add("hidden");
+    reopenHint.classList.add("visible");
+  });
 });
 reopenBtn.addEventListener("click", () => {
   terminalEl.classList.remove("hidden");
   reopenHint.classList.remove("visible");
-  input.focus();
+  playAnim("anim-open", 220, () => input.focus());
 });
 
 /* ---------- Dragging (mouse + touch via Pointer Events) ---------- */
@@ -348,6 +364,16 @@ input.addEventListener("keydown", e => {
 });
 input.addEventListener("input", () => { typed.textContent = input.value; });
 screen.addEventListener("click", () => input.focus());
+
+/* ---------- Cursor blinks only while the input is focused ---------- */
+input.addEventListener("focus", () => {
+  cursorEl.classList.add("blinking");
+  cursorEl.classList.remove("unfocused");
+});
+input.addEventListener("blur", () => {
+  cursorEl.classList.remove("blinking");
+  cursorEl.classList.add("unfocused");
+});
 
 function boot() {
   applyTheme(localStorage.getItem("cv-theme") || "dark");

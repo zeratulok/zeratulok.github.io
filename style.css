@@ -43,6 +43,39 @@ body {
 }
 .terminal.minimized .screen { display: none; }
 
+/* ---------- Window control animations ---------- */
+.terminal { transform-origin: top center; }
+
+@keyframes winMinimizeOut {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.85) translateY(30px); opacity: 0; }
+}
+@keyframes winRestoreIn {
+  0% { transform: scale(0.85) translateY(30px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+@keyframes winPop {
+  0% { transform: scale(0.96); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes winCloseOut {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0; }
+}
+@keyframes winOpenIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.terminal.anim-minimize { animation: winMinimizeOut 0.22s ease forwards; }
+.terminal.anim-restore { animation: winRestoreIn 0.22s ease forwards; }
+.terminal.anim-pop { animation: winPop 0.2s ease forwards; }
+.terminal.anim-close { animation: winCloseOut 0.2s ease forwards; }
+.terminal.anim-open { animation: winOpenIn 0.22s ease forwards; }
+
+.win-btn { transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease; }
+.win-btn:active { transform: scale(0.9); }
+
 .titlebar {
   background: #1a1a1a;
   padding: 0 0 0 12px;
@@ -139,10 +172,13 @@ body {
 .path { color: #67e8f9; font-weight: bold; }
 
 .cursor {
-  animation: blink 1s step-end infinite;
   color: #4ade80;
   margin-left: 1px;
+  opacity: 0.35;
+  transition: opacity 0.15s ease;
 }
+.cursor.blinking { animation: blink 1s step-end infinite; }
+.cursor.unfocused { opacity: 0.35; animation: none; }
 
 @keyframes blink {
   0%, 100% { opacity: 1; }
