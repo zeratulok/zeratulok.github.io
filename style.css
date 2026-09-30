@@ -156,7 +156,7 @@ body {
   line-height: 1.5;
   background:
     radial-gradient(ellipse at center, rgba(0,255,0,0.02) 0%, transparent 70%),
-    #0a0a0a;
+    #141414;
 }
 
 #output {
