@@ -40,9 +40,6 @@ body {
 .resize-handle.se { bottom: -4px; right: -4px; width: 14px; height: 14px; cursor: nwse-resize; }
 .resize-handle.sw { bottom: -4px; left: -4px; width: 14px; height: 14px; cursor: nesw-resize; }
 
-.terminal.maximized .resize-handle,
-.terminal.minimized .resize-handle { display: none; }
-
 .terminal.maximized {
   position: fixed !important;
   top: 0 !important;
@@ -52,6 +49,23 @@ body {
   border-radius: 0;
   z-index: 999;
 }
+
+.terminal.snapped-left,
+.terminal.snapped-right {
+  position: fixed !important;
+  top: 0 !important;
+  width: 50vw !important;
+  height: 100vh !important;
+  border-radius: 0;
+  z-index: 999;
+}
+.terminal.snapped-left { left: 0 !important; right: auto !important; }
+.terminal.snapped-right { right: 0 !important; left: auto !important; }
+
+.terminal.maximized .resize-handle,
+.terminal.snapped-left .resize-handle,
+.terminal.snapped-right .resize-handle,
+.terminal.minimized .resize-handle { display: none; }
 
 .terminal.minimized {
   height: auto !important;

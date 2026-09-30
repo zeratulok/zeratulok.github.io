@@ -252,6 +252,7 @@ function minimize() {
   playAnim("anim-minimize", 220, () => terminalEl.classList.add("minimized"));
 }
 function maximize() {
+  terminalEl.classList.remove("snapped-left", "snapped-right");
   terminalEl.classList.add("maximized");
   maxBtn.innerHTML = "&#10064;";
   maxBtn.setAttribute("aria-label", "Restore");
@@ -262,6 +263,25 @@ function unmaximize() {
   maxBtn.innerHTML = "&#9633;";
   maxBtn.setAttribute("aria-label", "Maximize");
   playAnim("anim-pop", 200, scrollBottom);
+}
+function snapLeft() {
+  terminalEl.classList.remove("maximized", "snapped-right");
+  terminalEl.classList.add("snapped-left");
+  maxBtn.innerHTML = "&#9633;";
+  maxBtn.setAttribute("aria-label", "Maximize");
+  playAnim("anim-pop", 200, scrollBottom);
+}
+function snapRight() {
+  terminalEl.classList.remove("maximized", "snapped-left");
+  terminalEl.classList.add("snapped-right");
+  maxBtn.innerHTML = "&#9633;";
+  maxBtn.setAttribute("aria-label", "Maximize");
+  playAnim("anim-pop", 200, scrollBottom);
+}
+function isSpecialSized() {
+  return terminalEl.classList.contains("maximized") ||
+    terminalEl.classList.contains("snapped-left") ||
+    terminalEl.classList.contains("snapped-right");
 }
 
 minBtn.addEventListener("click", () => {
@@ -295,20 +315,43 @@ titlebar.addEventListener("dblclick", e => {
 });
 
 /* ---------- Dragging (mouse + touch via Pointer Events) ---------- */
+const EDGE_SNAP_THRESHOLD = 30; // px from a viewport edge that triggers snapping on drop
 let dragging = false;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 
 titlebar.addEventListener("pointerdown", e => {
   if (e.target.closest("button")) return;
-  if (terminalEl.classList.contains("maximized")) return;
-  const rect = terminalEl.getBoundingClientRect();
-  terminalEl.style.position = "fixed";
-  terminalEl.style.margin = "0";
-  terminalEl.style.left = rect.left + "px";
-  terminalEl.style.top = rect.top + "px";
-  dragOffsetX = e.clientX - rect.left;
-  dragOffsetY = e.clientY - rect.top;
+  if (terminalEl.classList.contains("minimized")) return;
+
+  if (isSpecialSized()) {
+    // Dragging away from maximized/snapped: restore to a normal floating window
+    // first, keeping the title bar under the cursor at roughly the same relative spot.
+    const curRect = terminalEl.getBoundingClientRect();
+    const clickFractionX = (e.clientX - curRect.left) / curRect.width;
+    terminalEl.classList.remove("maximized", "snapped-left", "snapped-right");
+    maxBtn.innerHTML = "&#9633;";
+    maxBtn.setAttribute("aria-label", "Maximize");
+
+    const rect = terminalEl.getBoundingClientRect();
+    terminalEl.style.position = "fixed";
+    terminalEl.style.margin = "0";
+    const newLeft = e.clientX - rect.width * clickFractionX;
+    const newTop = Math.max(0, e.clientY - 16);
+    terminalEl.style.left = newLeft + "px";
+    terminalEl.style.top = newTop + "px";
+    dragOffsetX = rect.width * clickFractionX;
+    dragOffsetY = 16;
+  } else {
+    const rect = terminalEl.getBoundingClientRect();
+    terminalEl.style.position = "fixed";
+    terminalEl.style.margin = "0";
+    terminalEl.style.left = rect.left + "px";
+    terminalEl.style.top = rect.top + "px";
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+  }
+
   dragging = true;
   titlebar.classList.add("dragging");
   titlebar.setPointerCapture(e.pointerId);
@@ -326,9 +369,21 @@ titlebar.addEventListener("pointermove", e => {
   terminalEl.style.top = top + "px";
 });
 
-function stopDragging() {
+function stopDragging(e) {
+  if (!dragging) return;
   dragging = false;
   titlebar.classList.remove("dragging");
+  if (e && !terminalEl.classList.contains("minimized")) {
+    const x = e.clientX;
+    const y = e.clientY;
+    if (y <= EDGE_SNAP_THRESHOLD) {
+      maximize();
+    } else if (x <= EDGE_SNAP_THRESHOLD) {
+      snapLeft();
+    } else if (x >= window.innerWidth - EDGE_SNAP_THRESHOLD) {
+      snapRight();
+    }
+  }
 }
 titlebar.addEventListener("pointerup", stopDragging);
 titlebar.addEventListener("pointercancel", stopDragging);
@@ -348,7 +403,7 @@ let resizeStartY = 0;
 let startRect = null;
 
 function beginResize(e, dir) {
-  if (terminalEl.classList.contains("maximized") || terminalEl.classList.contains("minimized")) return;
+  if (isSpecialSized() || terminalEl.classList.contains("minimized")) return;
   e.preventDefault();
   e.stopPropagation();
   const rect = terminalEl.getBoundingClientRect();
