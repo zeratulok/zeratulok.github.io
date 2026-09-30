@@ -102,10 +102,20 @@ automation, VR and robotics (Raspberry Pi, speech recognition, VR
 development in Unity). Enjoys reading and mentoring.`
 };
 
+const DATE_STAMP = "Sep 30 23:43";
+const FILE_META = {};
+Object.keys(FILES).forEach(f => {
+  FILE_META[f] = { size: FILES[f].replace(/<[^>]+>/g, "").length, date: DATE_STAMP };
+});
+FILE_META["resume.pdf"] = { size: 25207, date: DATE_STAMP, binary: true };
+const ALL_FILES = Object.keys(FILE_META);
+
 const output = document.getElementById("output");
 const typed = document.getElementById("typed");
 const input = document.getElementById("cmdInput");
 const screen = document.getElementById("screen");
+const themeToggleBtn = document.getElementById("themeToggle");
+const pdfLink = document.getElementById("pdfDownload");
 
 function println(html = "") {
   output.innerHTML += html + "\n";
@@ -126,27 +136,60 @@ function escapeHtml(s) {
 const COMMANDS = {
   help() {
     println(`Available commands:
-  <span class="white">ls</span>                list CV sections (files)
-  <span class="white">cat</span> &lt;file&gt;         print a section, e.g. cat about.txt
-  <span class="white">whoami</span>             who am I
-  <span class="white">about</span>              professional summary  (alias of cat about.txt)
-  <span class="white">skills</span>             technical skills
-  <span class="white">experience</span>         work history
-  <span class="white">education</span>          education & training
-  <span class="white">strengths</span>          strengths
-  <span class="white">interests</span>          interests
-  <span class="white">contact</span>            contact details
-  <span class="white">clear</span>              clear the screen
-  <span class="white">help</span>               show this message`);
+  <span class="white">ls</span> [-la]            list CV sections (files)
+  <span class="white">cat</span> &lt;file&gt;            print a section, e.g. cat about.txt
+  <span class="white">download</span> [file]      download resume.pdf
+  <span class="white">theme</span> [dark|light]   toggle colour theme
+  <span class="white">whoami</span>                who am I
+  <span class="white">about</span>                 professional summary  (alias of cat about.txt)
+  <span class="white">skills</span>                technical skills
+  <span class="white">experience</span>            work history
+  <span class="white">education</span>             education & training
+  <span class="white">strengths</span>             strengths
+  <span class="white">interests</span>             interests
+  <span class="white">contact</span>               contact details
+  <span class="white">clear</span>                 clear the screen
+  <span class="white">help</span>                  show this message
+
+Tip: press <span class="white">Tab</span> to autocomplete commands and file names.`);
   },
-  ls() {
-    println(Object.keys(FILES).map(f => `<span class="cyan">${f}</span>`).join("  "));
+  ls(arg) {
+    const long = /l/.test(arg || "");
+    if (!long) {
+      println(ALL_FILES.map(f => `<span class="cyan">${f}</span>`).join("  "));
+      return;
+    }
+    println(`total ${ALL_FILES.length}`);
+    ALL_FILES.forEach(f => {
+      const meta = FILE_META[f];
+      const sizeStr = String(meta.size).padStart(6, " ");
+      println(`-rw-r--r--  1 spinter  spinter  ${sizeStr}  ${meta.date}  <span class="cyan">${f}</span>`);
+    });
   },
   cat(arg) {
     if (!arg) { println(`cat: missing file operand`); return; }
+    if (arg === "resume.pdf") {
+      println(`<span class="error">cat: resume.pdf: binary file</span> (try: <span class="white">download resume.pdf</span>)`);
+      return;
+    }
     const key = FILES[arg] ? arg : Object.keys(FILES).find(f => f.startsWith(arg));
     if (key) println(FILES[key]);
     else println(`<span class="error">cat: ${escapeHtml(arg)}: No such file</span>`);
+  },
+  download(arg) {
+    const file = arg || "resume.pdf";
+    if (file !== "resume.pdf") {
+      println(`<span class="error">download: ${escapeHtml(file)}: no such downloadable file</span>`);
+      return;
+    }
+    pdfLink.click();
+    println(`Downloading <span class="cyan">resume.pdf</span> ... done. Saved as <span class="white">Sandor_Norbert_Pinter_CV.pdf</span>`);
+  },
+  theme(arg) {
+    const t = (arg || "").toLowerCase();
+    if (t === "light" || t === "dark") { applyTheme(t); }
+    else { toggleTheme(); }
+    println(`Theme set to <span class="white">${document.body.classList.contains("light") ? "light" : "dark"}</span>.`);
   },
   whoami() {
     println(`<span class="heading">Sandor Norbert Pinter</span> — Senior Software Engineer
@@ -174,18 +217,71 @@ function run(raw) {
   scrollBottom();
 }
 
+function applyTheme(theme) {
+  document.body.classList.toggle("light", theme === "light");
+  themeToggleBtn.innerHTML = theme === "light" ? "&#9789;" : "&#9788;";
+  localStorage.setItem("cv-theme", theme);
+}
+function toggleTheme() {
+  applyTheme(document.body.classList.contains("light") ? "dark" : "light");
+}
+themeToggleBtn.addEventListener("click", toggleTheme);
+
+function longestCommonPrefix(strs) {
+  if (!strs.length) return "";
+  let prefix = strs[0];
+  for (let i = 1; i < strs.length; i++) {
+    while (!strs[i].startsWith(prefix)) prefix = prefix.slice(0, -1);
+  }
+  return prefix;
+}
+
+function completeInput() {
+  const val = input.value;
+  const isFirstToken = !/\s/.test(val.trim()) && !/\s$/.test(val);
+  let partial, candidates, replaceStart;
+  if (isFirstToken) {
+    partial = val;
+    candidates = Object.keys(COMMANDS);
+    replaceStart = 0;
+  } else {
+    const lastSpace = val.lastIndexOf(" ");
+    partial = val.slice(lastSpace + 1);
+    candidates = ALL_FILES;
+    replaceStart = lastSpace + 1;
+  }
+  const matches = candidates.filter(c => c.startsWith(partial)).sort();
+  if (matches.length === 0) return;
+  if (matches.length === 1) {
+    input.value = val.slice(0, replaceStart) + matches[0] + (isFirstToken ? " " : "");
+  } else {
+    const lcp = longestCommonPrefix(matches);
+    if (lcp.length > partial.length) {
+      input.value = val.slice(0, replaceStart) + lcp;
+    } else {
+      println(matches.map(m => `<span class="cyan">${m}</span>`).join("  "));
+      scrollBottom();
+    }
+  }
+  typed.textContent = input.value;
+}
+
 input.addEventListener("keydown", e => {
   if (e.key === "Enter") {
     const val = input.value;
     input.value = "";
     typed.textContent = "";
     run(val);
+  } else if (e.key === "Tab") {
+    e.preventDefault();
+    completeInput();
   }
 });
 input.addEventListener("input", () => { typed.textContent = input.value; });
 screen.addEventListener("click", () => input.focus());
 
 function boot() {
+  applyTheme(localStorage.getItem("cv-theme") || "dark");
   println(`Welcome to <span class="heading">zeratulok's</span> interactive CV terminal.`);
   println(`Loading profile...\n`);
   input.focus();

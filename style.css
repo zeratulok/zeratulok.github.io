@@ -44,7 +44,21 @@ body {
   margin-left: 12px;
   color: #999;
   font-size: 13px;
+  flex: 1;
 }
+
+.theme-toggle {
+  background: transparent;
+  border: 1px solid #444;
+  color: #ccc;
+  border-radius: 4px;
+  width: 26px;
+  height: 22px;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+.theme-toggle:hover { background: #2a2a2a; }
 
 .screen {
   flex: 1;
@@ -109,3 +123,39 @@ body {
 @media (max-width: 600px) {
   .screen { font-size: 12.5px; }
 }
+
+/* ---------- Light theme ---------- */
+body.light { background: #e7e7e7; }
+
+body.light .terminal {
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 0 0 1px #ccc;
+}
+
+body.light .titlebar {
+  background: #f0f0f0;
+  border-bottom: 1px solid #ccc;
+}
+body.light .titletext { color: #555; }
+body.light .theme-toggle { border-color: #bbb; color: #333; }
+body.light .theme-toggle:hover { background: #ddd; }
+
+body.light .screen {
+  background: #fdfdfd;
+}
+
+body.light #output { color: #1c3a1c; }
+body.light #output .green { color: #16794f; }
+body.light #output .cyan { color: #0b6e91; }
+body.light #output .yellow { color: #8a6d00; }
+body.light #output .white { color: #111; }
+body.light #output .dim { color: #777; }
+body.light #output .heading { color: #0b6e91; }
+body.light #output .error { color: #c0392b; }
+
+body.light .input-line,
+body.light .user,
+body.light .host,
+body.light .cursor { color: #16794f; }
+body.light .path { color: #0b6e91; }
+
+body.light .screen::-webkit-scrollbar-thumb { background: #ccc; }
