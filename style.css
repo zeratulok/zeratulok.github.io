@@ -1,0 +1,111 @@
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: #0d0d0d;
+  font-family: "Cascadia Code", "Fira Code", "Consolas", "Menlo", monospace;
+  color: #d4d4d4;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.terminal {
+  width: min(980px, 96vw);
+  height: min(680px, 92vh);
+  background: #0b0b0b;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px #222;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.titlebar {
+  background: #1e1e1e;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #000;
+}
+
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.dot.red { background: #ff5f56; }
+.dot.yellow { background: #ffbd2e; }
+.dot.green { background: #27c93f; }
+
+.titletext {
+  margin-left: 12px;
+  color: #999;
+  font-size: 13px;
+}
+
+.screen {
+  flex: 1;
+  padding: 16px 18px;
+  overflow-y: auto;
+  outline: none;
+  font-size: 14px;
+  line-height: 1.5;
+  background:
+    radial-gradient(ellipse at center, rgba(0,255,0,0.02) 0%, transparent 70%),
+    #0a0a0a;
+}
+
+#output {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  color: #b7f5b7;
+}
+
+#output .green { color: #4ade80; }
+#output .cyan { color: #67e8f9; }
+#output .yellow { color: #fde68a; }
+#output .white { color: #f5f5f5; }
+#output .dim { color: #7a7a7a; }
+#output .heading { color: #67e8f9; font-weight: bold; }
+#output .error { color: #f87171; }
+
+.input-line {
+  display: flex;
+  align-items: center;
+  color: #b7f5b7;
+  position: relative;
+}
+
+.prompt { white-space: pre; }
+.user { color: #4ade80; font-weight: bold; }
+.host { color: #4ade80; font-weight: bold; }
+.path { color: #67e8f9; font-weight: bold; }
+
+.cursor {
+  animation: blink 1s step-end infinite;
+  color: #4ade80;
+  margin-left: 1px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+#cmdInput {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+}
+
+.screen::-webkit-scrollbar { width: 10px; }
+.screen::-webkit-scrollbar-thumb { background: #333; border-radius: 5px; }
+.screen::-webkit-scrollbar-track { background: transparent; }
+
+@media (max-width: 600px) {
+  .screen { font-size: 12.5px; }
+}

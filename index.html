@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>spinter@sky:~$</title>
+<meta name="description" content="Sandor Norbert Pinter — Senior Software Engineer CV, terminal edition">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="terminal" id="terminal">
+    <div class="titlebar">
+      <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+      <span class="titletext">spinter@sky: ~</span>
+    </div>
+    <div class="screen" id="screen" tabindex="0">
+      <pre id="output"></pre>
+      <div class="input-line">
+        <span class="prompt"><span class="user">guest</span>@<span class="host">zeratulok</span>:<span class="path">~</span>$&nbsp;</span>
+        <span id="typed"></span><span class="cursor">&#9608;</span>
+        <input id="cmdInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
