@@ -324,12 +324,28 @@ let dragOffsetY = 0;
 let pendingSpecialRestore = null; // null | "maximized" | "snapped-left" | "snapped-right"
 let dragStartX = 0;
 let dragStartY = 0;
+// Zone we just un-snapped/un-maximized out of. While the cursor is still inside it,
+// snap detection for that zone is suppressed — you must fully leave it once before
+// it can trigger a (re-)snap again. Prevents the preview flashing back on immediately
+// as you drag away from a maximized/snapped edge.
+let suppressedSnapZone = null;
 
 function computeSnapZone(x, y) {
   if (y <= EDGE_SNAP_THRESHOLD) return "top";
   if (x <= EDGE_SNAP_THRESHOLD) return "left";
   if (x >= window.innerWidth - EDGE_SNAP_THRESHOLD) return "right";
   return null;
+}
+
+// Applies the suppression rule on top of the raw zone lookup, and re-arms the
+// suppressed zone once the cursor has moved outside of it.
+function activeSnapZone(x, y) {
+  const zone = computeSnapZone(x, y);
+  if (suppressedSnapZone) {
+    if (zone === suppressedSnapZone) return null;
+    suppressedSnapZone = null; // cursor left the zone — re-arm it
+  }
+  return zone;
 }
 
 function updateSnapPreview(zone) {
@@ -378,6 +394,8 @@ titlebar.addEventListener("pointerdown", e => {
   if (e.target.closest("button")) return;
   if (terminalEl.classList.contains("minimized")) return;
 
+  suppressedSnapZone = null;
+
   if (isSpecialSized()) {
     // Don't restore immediately — wait until the user drags in the "release" direction
     // (down for maximized, right for snapped-left, left for snapped-right).
@@ -417,6 +435,10 @@ titlebar.addEventListener("pointermove", e => {
     const curRect = terminalEl.getBoundingClientRect();
     const clickFractionX = (e.clientX - curRect.left) / curRect.width;
     beginFloatingDragFrom(e, clickFractionX);
+    // Suppress the zone we just un-snapped from so it doesn't immediately re-trigger
+    // the preview/snap while the cursor is still within it right after crossing the threshold.
+    suppressedSnapZone = pendingSpecialRestore === "maximized" ? "top"
+      : pendingSpecialRestore === "snapped-left" ? "left" : "right";
     pendingSpecialRestore = null;
     // fall through to normal move handling below, using the freshly computed offsets
   }
@@ -430,7 +452,7 @@ titlebar.addEventListener("pointermove", e => {
   terminalEl.style.left = left + "px";
   terminalEl.style.top = top + "px";
 
-  updateSnapPreview(computeSnapZone(e.clientX, e.clientY));
+  updateSnapPreview(activeSnapZone(e.clientX, e.clientY));
 });
 
 function stopDragging(e) {
@@ -446,11 +468,12 @@ function stopDragging(e) {
   }
 
   if (e && !terminalEl.classList.contains("minimized")) {
-    const zone = computeSnapZone(e.clientX, e.clientY);
+    const zone = activeSnapZone(e.clientX, e.clientY);
     if (zone === "top") maximize();
     else if (zone === "left") snapLeft();
     else if (zone === "right") snapRight();
   }
+  suppressedSnapZone = null;
 }
 titlebar.addEventListener("pointerup", stopDragging);
 titlebar.addEventListener("pointercancel", stopDragging);
