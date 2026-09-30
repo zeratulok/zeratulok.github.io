@@ -312,6 +312,76 @@ function stopDragging() {
 titlebar.addEventListener("pointerup", stopDragging);
 titlebar.addEventListener("pointercancel", stopDragging);
 
+/* ---------- Resizing via corner/edge handles ---------- */
+const MIN_W = 360;
+const MIN_H = 220;
+const RESIZE_CURSORS = {
+  n: "ns-resize", s: "ns-resize", e: "ew-resize", w: "ew-resize",
+  ne: "nesw-resize", sw: "nesw-resize", nw: "nwse-resize", se: "nwse-resize"
+};
+
+let resizing = false;
+let resizeDir = "";
+let resizeStartX = 0;
+let resizeStartY = 0;
+let startRect = null;
+
+function beginResize(e, dir) {
+  if (terminalEl.classList.contains("maximized") || terminalEl.classList.contains("minimized")) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const rect = terminalEl.getBoundingClientRect();
+  terminalEl.style.position = "fixed";
+  terminalEl.style.margin = "0";
+  terminalEl.style.left = rect.left + "px";
+  terminalEl.style.top = rect.top + "px";
+  terminalEl.style.width = rect.width + "px";
+  terminalEl.style.height = rect.height + "px";
+  startRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+  resizeStartX = e.clientX;
+  resizeStartY = e.clientY;
+  resizeDir = dir;
+  resizing = true;
+  document.body.style.cursor = RESIZE_CURSORS[dir];
+  e.target.setPointerCapture(e.pointerId);
+}
+
+function onResizeMove(e) {
+  if (!resizing) return;
+  const dx = e.clientX - resizeStartX;
+  const dy = e.clientY - resizeStartY;
+  let { left, top, width, height } = startRect;
+  if (resizeDir.includes("e")) width = Math.max(MIN_W, startRect.width + dx);
+  if (resizeDir.includes("s")) height = Math.max(MIN_H, startRect.height + dy);
+  if (resizeDir.includes("w")) {
+    width = Math.max(MIN_W, startRect.width - dx);
+    left = startRect.left + (startRect.width - width);
+  }
+  if (resizeDir.includes("n")) {
+    height = Math.max(MIN_H, startRect.height - dy);
+    top = startRect.top + (startRect.height - height);
+  }
+  terminalEl.style.left = left + "px";
+  terminalEl.style.top = top + "px";
+  terminalEl.style.width = width + "px";
+  terminalEl.style.height = height + "px";
+}
+
+function endResize() {
+  if (!resizing) return;
+  resizing = false;
+  resizeDir = "";
+  document.body.style.cursor = "";
+}
+
+document.querySelectorAll(".resize-handle").forEach(handle => {
+  const dir = handle.dataset.dir;
+  handle.addEventListener("pointerdown", e => beginResize(e, dir));
+  handle.addEventListener("pointermove", onResizeMove);
+  handle.addEventListener("pointerup", endResize);
+  handle.addEventListener("pointercancel", endResize);
+});
+
 function longestCommonPrefix(strs) {
   if (!strs.length) return "";
   let prefix = strs[0];
