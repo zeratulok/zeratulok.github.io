@@ -107,7 +107,7 @@ const FILE_META = {};
 Object.keys(FILES).forEach(f => {
   FILE_META[f] = { size: FILES[f].replace(/<[^>]+>/g, "").length, date: DATE_STAMP };
 });
-FILE_META["resume.pdf"] = { size: 25207, date: DATE_STAMP, binary: true };
+FILE_META["resume.pdf"] = { size: 25227, date: DATE_STAMP, binary: true };
 const ALL_FILES = Object.keys(FILE_META);
 
 const output = document.getElementById("output");
