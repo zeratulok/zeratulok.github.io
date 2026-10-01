@@ -16,7 +16,7 @@ track record of technical leadership, mentoring and cross-team delivery.`,
 Email    : pinter.sandor.norbert@gmail.com
 Phone    : +44 7766 195638
 Location : Twickenham, London, United Kingdom
-GitHub   : github.com/zeratulok`,
+Website  : https://zeratulok.github.io/`,
 
   "skills.txt": `<span class="heading">Technical Skills</span>
 Cloud & Platform   : AWS, Kubernetes, Sky Core Platform, VMware, Docker, CloudFoundry
@@ -124,6 +124,9 @@ const closeBtn = document.getElementById("closeBtn");
 const reopenHint = document.getElementById("reopenHint");
 const reopenBtn = document.getElementById("reopenBtn");
 const snapPreviewEl = document.getElementById("snapPreview");
+const mobileGateEl = document.getElementById("mobileGate");
+const mobileDownloadBtn = document.getElementById("mobileDownloadBtn");
+const mobileContinueBtn = document.getElementById("mobileContinueBtn");
 const cursorEl = document.getElementById("cursor");
 
 function println(html = "") {
@@ -619,3 +622,23 @@ function boot() {
   ["whoami", "help"].forEach(run);
 }
 boot();
+
+/* ---------- Mobile gate: the draggable/resizable terminal isn't usable on small touchscreens ---------- */
+function isSmallScreen() {
+  return window.innerWidth <= 700;
+}
+function showMobileGate() {
+  mobileGateEl.classList.add("visible");
+}
+function hideMobileGate() {
+  mobileGateEl.classList.remove("visible");
+  input.focus();
+}
+if (isSmallScreen() && sessionStorage.getItem("cv-continue-anyway") !== "1") {
+  showMobileGate();
+}
+mobileDownloadBtn.addEventListener("click", () => pdfLink.click());
+mobileContinueBtn.addEventListener("click", () => {
+  sessionStorage.setItem("cv-continue-anyway", "1");
+  hideMobileGate();
+});

@@ -308,3 +308,61 @@ body.light .screen::-webkit-scrollbar-thumb { background: #ccc; }
 body.light .reopen-hint { color: #666; }
 body.light .reopen-hint button { background: #fff; border-color: #bbb; color: #222; }
 body.light .reopen-hint button:hover { background: #eee; }
+
+/* ---------- Mobile gate: shown on small/touch screens instead of the terminal ---------- */
+.mobile-gate {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #0d0d0d;
+}
+.mobile-gate.visible { display: flex; }
+.mobile-gate-card {
+  max-width: 420px;
+  text-align: center;
+  color: #d4d4d4;
+}
+.mobile-gate-title {
+  color: #67e8f9;
+  font-weight: bold;
+  font-size: 17px;
+  margin-bottom: 14px;
+}
+.mobile-gate-card p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #aaa;
+  margin: 0 0 14px;
+}
+.mobile-gate-btn {
+  display: block;
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: #d4d4d4;
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+.mobile-gate-btn:hover { background: #2a2a2a; }
+.mobile-gate-btn.primary {
+  background: #0b6e91;
+  border-color: #0b6e91;
+  color: #fff;
+}
+.mobile-gate-btn.primary:hover { background: #0d80a8; }
+
+body.light .mobile-gate { background: #e7e7e7; }
+body.light .mobile-gate-title { color: #0b6e91; }
+body.light .mobile-gate-card p { color: #555; }
+body.light .mobile-gate-btn { background: #fff; border-color: #bbb; color: #222; }
+body.light .mobile-gate-btn:hover { background: #eee; }
+body.light .mobile-gate-btn.primary { background: #0b6e91; border-color: #0b6e91; color: #fff; }
+body.light .mobile-gate-btn.primary:hover { background: #0d80a8; }
