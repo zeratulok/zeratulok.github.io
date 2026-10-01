@@ -590,15 +590,40 @@ function completeInput() {
   typed.textContent = input.value;
 }
 
+/* ---------- Command history (Up/Down arrows) ---------- */
+const cmdHistory = [];
+let historyPos = 0; // 0..cmdHistory.length; === length means "not navigating" (showing the draft)
+let historyDraft = "";
+
+function setInputValue(val) {
+  input.value = val;
+  typed.textContent = val;
+  input.setSelectionRange(val.length, val.length);
+}
+
 input.addEventListener("keydown", e => {
   if (e.key === "Enter") {
     const val = input.value;
+    if (val.trim() && val !== cmdHistory[cmdHistory.length - 1]) cmdHistory.push(val);
+    historyPos = cmdHistory.length;
+    historyDraft = "";
     input.value = "";
     typed.textContent = "";
     run(val);
   } else if (e.key === "Tab") {
     e.preventDefault();
     completeInput();
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    if (historyPos === 0) return;
+    if (historyPos === cmdHistory.length) historyDraft = input.value;
+    historyPos--;
+    setInputValue(cmdHistory[historyPos]);
+  } else if (e.key === "ArrowDown") {
+    e.preventDefault();
+    if (historyPos >= cmdHistory.length) return;
+    historyPos++;
+    setInputValue(historyPos === cmdHistory.length ? historyDraft : cmdHistory[historyPos]);
   }
 });
 input.addEventListener("input", () => { typed.textContent = input.value; });
